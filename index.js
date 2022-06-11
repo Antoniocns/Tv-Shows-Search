@@ -1,26 +1,59 @@
-const handleSearch = async (event) => {
-  event.preventDefault();
 
-  // implemente a consulta a partir daqui
 
-  //// Exemplo de endpoint: https://api.tvmaze.com/search/shows?q=lost
 
-  //// Elementos de leiaute importantes:
+const sendQuery = async (evt) => {
+  // Cancela ação padrão do botão
+  evt.preventDefault();
 
-  //  #message: use para exibir mensagens aos usuário, por exemplo:
+  // Obtém elementos de tela
+  const messageBox = document.getElementById("message");
+  const showList = document.getElementById("shows");
 
-  const message = document.querySelector('#message');
-  message.innerHTML = 'exercício ainda não resolvido.';
+  // Limpar lista e a mensagem
+  messageBox.innerHTML = "";
+  showList.innerHTML = "";
 
-  //  #shows: conterá os shows, cada um em um <li>, por exemplo:
-  // <li>
-  //   <img class="poster" src="https://static.tvmaze.com/uploads/images/medium_portrait/0/1389.jpg" />
-  //   <span class="show-name">Lost</span>
-  // </li>
+  // Obtendo o valor digitado
+  const textToSearch = document.getElementById("query").value;
+
+  // Montando a URL da API
+  const url = `https://api.tvmaze.com/search/shows?q=${textToSearch}`;
+
+  // Chamar a API
+  const response = await fetch(url);
+
+  // Testar se não teve sucesso
+  if (!response.ok) {
+      messageBox.innerHTML = "Failed to fetch results.";
+      return;
+  }
+
+  // Ler o resultado
+  const showsFetched = await response.json();
+
+  // Saber se não veio nenhum show
+  if (showsFetched.length === 0) {
+      messageBox.innerHTML = "Not found.";
+      return;
+  }
+
+  // Exibir os shows retornados
+  showsFetched.forEach((item) => {
+      const showName = item?.show?.name;
+      const showPictureUrl = item?.show?.image?.medium || '';
+
+      // Exibir o nome e a imagem
+      showList.insertAdjacentHTML("beforeend", `
+          <li>
+              <img class="poster" src="${showPictureUrl}" />
+              <span class="show-name">${showName}</span>
+          </li>
+      `);
+  });
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   document
-    .querySelector('#search-form')
-    .addEventListener('submit', handleSearch);
+      .getElementById("search-form")
+      .addEventListener("submit", sendQuery);
 });
